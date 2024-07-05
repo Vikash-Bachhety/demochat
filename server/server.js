@@ -5,25 +5,33 @@ const http = require("http");
 require('dotenv').config();
 
 const app = express();
-app.use(cors("https://demochat-omega.vercel.app"));
+
+app.use(cors("http://localhost:5173"));
 
 const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
-    origin: "https://demochat-omega.vercel.app",
+    origin: "http://localhost:5173",
     methods: ["GET", "POST"],
   },
 });
 
 io.on("connection", (socket) => {
-  console.log(`socket connected ${socket.id}`);
+  console.log(`Socket connected: ${socket.id}`);
+
+  socket.emit("message", {message: "Welcome to the chat app!", id: socket.id});
 
   socket.on("send_message", (data) => {
-    io.emit("receive_message", data);
+    io.emit("receive_message", { message: data.message, userId: socket.id });
   });
+
+  // socket.on("disconnect", () => {
+  //   io.emit("user_left", { message: "A user has left the chat." });
+  //   console.log(`Socket disconnected: ${socket.id}`);
+  // });
 });
 
-const PORT = process.env.PORT || 3000;
+const PORT = 3000;
 server.listen(PORT, () => {
-  console.log(`Server is connected at ${PORT}`);
+  console.log(`Server is running on port ${PORT}`);
 });

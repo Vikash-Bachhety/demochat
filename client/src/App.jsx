@@ -1,28 +1,44 @@
 import { useEffect, useState } from "react";
 import io from "socket.io-client";
 
-const socket = io.connect("https://demochat-server.vercel.app");
+const socket = io.connect("http://localhost:3000");
 
 function App() {
   const [message, setMessage] = useState("");
-  const [recieveMessages, setReciveMessages] = useState([]);
+  const [note, setNote] = useState("");
+  const [receiveMessages, setReceiveMessages] = useState([]);
+  const [userId, setUserId] = useState("");
 
   const sendMessage = () => {
     if (message.trim() !== "") {
-      socket.emit("send_message", { message });
+      socket.emit("send_message", { message, userId });
       setMessage("");
     }
   };
 
   useEffect(() => {
-    socket.on("receive_message", (data) => {
-      setReciveMessages((prevMessages) => [...prevMessages, data.message]);
+    socket.on("message", (msg) => {
+      setNote(msg.message);
+      setUserId(msg.id);
     });
 
+    socket.on("receive_message", (data) => {
+      setReceiveMessages((prevMessages) => [...prevMessages, data]);
+    });
+
+    // socket.on("user_left", (data) => {
+    //   setReceiveMessages((prevMessages) => [
+    //     ...prevMessages,
+    //     { message: data.message, system: true },
+    //   ]);
+    // });
+
     return () => {
+      socket.off("message");
       socket.off("receive_message");
+      socket.off("user_left");
     };
-  }, []);
+  }, [socket]);
 
   return (
     <div className="flex justify-center items-center h-screen bg-gray-800">
@@ -30,13 +46,16 @@ function App() {
         <div className="p-4 bg-blue-500 text-white">
           <h1 className="text-lg font-semibold">Chat Application</h1>
         </div>
-        <div className="flex-1 p-4 overflow-y-auto">
-          {recieveMessages.map((msg, index) => (
+        <p className="text-slate-500 mx-auto">{note}</p>
+        <div className="flex-1 p-4 relative bg-slate-700">
+          {receiveMessages.map((msg, index) => (
             <div
-              key={index}
-              className="p-2 my-2 bg-green-100 rounded-md"
-            >
-              {msg}
+            key={index}
+            className={`my-2 p-1.5 rounded-xl max-w-48 ${
+              msg.userId === userId ? "bg-green-100 ml-auto" : "bg-blue-100 mr-auto"
+            }`}
+          >
+              {msg.message}
             </div>
           ))}
         </div>
