@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import io from "socket.io-client";
 
-const socket = io.connect("demochat-production.up.railway.app");
+const socket = io.connect("https://demochat-production.up.railway.app");
 // const socket = io.connect("http://localhost:3000");
 
 function App() {
