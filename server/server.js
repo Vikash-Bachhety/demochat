@@ -6,12 +6,14 @@ require('dotenv').config();
 
 const app = express();
 
-app.use(cors("http://localhost:5173"));
+app.use(cors("https://demochat-omega.vercel.app"));
+// app.use(cors("http://localhost:5173"));
 
 const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
     origin: "http://localhost:5173",
+    // origin: "http://localhost:5173",
     methods: ["GET", "POST"],
   },
 });
@@ -31,7 +33,7 @@ io.on("connection", (socket) => {
   // });
 });
 
-const PORT = 3000;
+const PORT = 3000 || process.env.PORT;
 server.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
 });
