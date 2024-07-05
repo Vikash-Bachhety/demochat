@@ -12,8 +12,7 @@ app.use(cors("https://demochat-omega.vercel.app"));
 const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
-    origin: "http://localhost:5173",
-    // origin: "https://demochat-omega.vercel.app",
+    origin: "https://demochat-omega.vercel.app",
     methods: ["GET", "POST"],
   },
 });
