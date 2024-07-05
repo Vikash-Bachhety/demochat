@@ -9,10 +9,12 @@ function App() {
   const [note, setNote] = useState("");
   const [receiveMessages, setReceiveMessages] = useState([]);
   const [userId, setUserId] = useState("");
+  const [username, setUsername] = useState("");
+  const [enteredName, setEnteredName] = useState(false);
 
   const sendMessage = () => {
     if (message.trim() !== "") {
-      socket.emit("send_message", { message, userId });
+      socket.emit("send_message", { message, userId, username });
       setMessage("");
     }
   };
@@ -27,55 +29,74 @@ function App() {
       setReceiveMessages((prevMessages) => [...prevMessages, data]);
     });
 
-    // socket.on("user_left", (data) => {
-    //   setReceiveMessages((prevMessages) => [
-    //     ...prevMessages,
-    //     { message: data.message, system: true },
-    //   ]);
-    // });
-
     return () => {
       socket.off("message");
       socket.off("receive_message");
-      socket.off("user_left");
     };
-  }, [socket]);
+  }, []);
+
+  const enterName = () => {
+    if (username.trim() !== "") {
+      setEnteredName(true);
+    }
+  };
 
   return (
-    <div className="flex justify-center items-center h-screen bg-gray-800">
-      <div className="w-full max-w-md bg-white shadow-lg rounded-lg flex flex-col overflow-hidden">
-        <div className="p-4 bg-blue-500 text-white">
-          <h1 className="text-lg font-semibold">Chat Application</h1>
-        </div>
-        <p className="text-slate-500 mx-auto">{note}</p>
-        <div className="flex-1 p-4 relative bg-slate-700">
-          {receiveMessages.map((msg, index) => (
-            <div
-            key={index}
-            className={`my-2 p-1.5 rounded-xl max-w-48 ${
-              msg.userId === userId ? "bg-green-100 ml-auto" : "bg-blue-100 mr-auto"
-            }`}
-          >
-              {msg.message}
-            </div>
-          ))}
-        </div>
-        <div className="p-4 bg-blue-100 border-t border-gray-200">
+    <div className="flex justify-center items-center h-screen bg-gray-800 p-4">
+      {!enteredName ? (
+        <div className="w-full max-w-sm bg-white shadow-lg rounded-lg p-6">
+          <h1 className="text-xl font-semibold mb-4 text-gray-700">Enter Your Name</h1>
           <input
             type="text"
-            value={message}
-            onChange={(e) => setMessage(e.target.value)}
-            placeholder="Type your message..."
-            className="w-full p-2 border rounded-lg focus:outline-none focus:ring focus:border-blue-300"
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
+            placeholder="Your name"
+            className="w-full p-2 border rounded-lg focus:outline-none focus:ring focus:border-blue-300 mb-4"
           />
           <button
-            onClick={sendMessage}
-            className="w-full mt-2 p-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
+            onClick={enterName}
+            className="w-full p-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
           >
-            Send
+            Submit
           </button>
         </div>
-      </div>
+      ) : (
+        <div className="w-full max-w-3xl bg-white shadow-lg rounded-lg flex flex-col overflow-hidden">
+          <div className="p-4 bg-blue-500 text-white">
+            <h1 className="text-lg font-semibold">Gapshap</h1>
+            <p className="text-sm">Hello, {username}</p>
+          </div>
+          <p className="text-slate-500 mx-auto">{note}</p>
+          <div className="flex-1 max-h-80 md:max-h-96 p-4 relative bg-slate-700 overflow-y-auto">
+            {receiveMessages.map((msg, index) => (
+              <div
+                key={index}
+                className={`my-2 px-2 p-1.5 rounded-xl max-w-[45%] break-words ${
+                  msg.userId === userId ? "bg-teal-100 ml-auto" : "bg-sky-50 mr-auto text-wrap"
+                }`}
+              >
+                <p className="text-xs text-gray-500">{msg.username}</p>
+                <p>{msg.message}</p>
+              </div>
+            ))}
+          </div>
+          <div className="p-4 bg-blue-100 border-t border-gray-200">
+            <input
+              type="text"
+              value={message}
+              onChange={(e) => setMessage(e.target.value)}
+              placeholder="Type your message..."
+              className="w-full p-2 border rounded-lg focus:outline-none focus:ring focus:border-blue-300"
+            />
+            <button
+              onClick={sendMessage}
+              className="w-full mt-2 p-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
+            >
+              Send
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
