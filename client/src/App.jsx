@@ -1,3 +1,4 @@
+// import { disconnect } from "mongoose";
 import { useEffect, useState } from "react";
 import io from "socket.io-client";
 
@@ -11,6 +12,7 @@ function App() {
   const [userId, setUserId] = useState("");
   const [username, setUsername] = useState("");
   const [enteredName, setEnteredName] = useState(false);
+  const [disconnectMsg, setDisconnectMsg] = useState("");
 
   const sendMessage = () => {
     if (message.trim() !== "") {
@@ -28,10 +30,15 @@ function App() {
     socket.on("receive_message", (data) => {
       setReceiveMessages((prevMessages) => [...prevMessages, data]);
     });
+   
+    socket.on("user_left", (data) => {
+      setDisconnectMsg(username+data.message);
+    });
 
     return () => {
       socket.off("message");
       socket.off("receive_message");
+      socket.off("user_left");
     };
   }, []);
 
@@ -65,6 +72,7 @@ function App() {
           <div className="p-4 bg-blue-500 text-white">
             <h1 className="text-lg font-semibold">Gapshap</h1>
             <p className="text-sm">Hello, {username}</p>
+            <p>{disconnectMsg}</p>
           </div>
           <p className="text-slate-500 mx-auto">{note}</p>
           <div className="flex-1 max-h-80 md:max-h-96 p-4 relative bg-slate-700 overflow-y-auto">
@@ -72,7 +80,7 @@ function App() {
               <div
                 key={index}
                 className={`my-2 px-2 p-1.5 rounded-xl max-w-[45%] break-words ${
-                  msg.userId === userId ? "bg-teal-100 ml-auto" : "bg-sky-50 mr-auto text-wrap"
+                  msg.userId === userId ? "bg-teal-100 ml-auto" : "bg-yellow-50 mr-auto text-wrap"
                 }`}
               >
                 <p className="text-xs text-gray-500">{msg.username}</p>

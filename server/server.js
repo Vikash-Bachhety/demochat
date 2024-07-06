@@ -3,7 +3,7 @@ const cors = require("cors");
 const { Server } = require("socket.io");
 const http = require("http");
 const mongoose = require("mongoose");
-require('dotenv').config();
+require("dotenv").config();
 
 const app = express();
 
@@ -20,10 +20,12 @@ const io = new Server(server, {
 });
 
 // MongoDB connection
-mongoose.connect(process.env.MONGO_URI, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
-}).then(() => console.log("MongoDB connected"))
+mongoose
+  .connect(process.env.MONGO_URI, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+  })
+  .then(() => console.log("MongoDB connected"))
   .catch((err) => console.log("MongoDB connection error: ", err));
 
 // Define the message schema and model
@@ -37,14 +39,14 @@ const messageSchema = new mongoose.Schema({
 const Message = mongoose.model("Message", messageSchema);
 
 // Remove any unique index on the `email` field if it exists
-mongoose.connection.on('open', async () => {
+mongoose.connection.on("open", async () => {
   const collections = await mongoose.connection.db.collections();
   for (let collection of collections) {
     try {
-      await collection.dropIndex('email_1');
+      await collection.dropIndex("email_1");
     } catch (error) {
-      if (error.codeName !== 'IndexNotFound') {
-        console.error('Error dropping index:', error);
+      if (error.codeName !== "IndexNotFound") {
+        console.error("Error dropping index:", error);
       }
     }
   }
@@ -53,7 +55,10 @@ mongoose.connection.on('open', async () => {
 io.on("connection", async (socket) => {
   console.log(`Socket connected: ${socket.id}`);
 
-  socket.emit("message", { message: "Welcome to the chat app!", id: socket.id });
+  socket.emit("message", {
+    message: "Welcome to the chat app!",
+    id: socket.id,
+  });
 
   // Send all previous messages to the newly connected user
   try {
@@ -72,19 +77,23 @@ io.on("connection", async (socket) => {
 
     try {
       await newMessage.save();
-      io.emit("receive_message", { message: data.message, userId: socket.id, username: data.username });
+      io.emit("receive_message", {
+        message: data.message,
+        userId: socket.id,
+        username: data.username,
+      });
     } catch (err) {
       console.error(err);
     }
   });
 
-  // socket.on("disconnect", () => {
-  //   io.emit("user_left", { message: "A user has left the chat." });
-  //   console.log(`Socket disconnected: ${socket.id}`);
-  // });
+  socket.on("disconnect", () => {
+    io.emit("user_left", { message: `has left the chat.` });
+    console.log(`Socket disconnected: ${socket.id}`);
+  });
 });
 
-const PORT = 3000;
+const PORT = 3000 || process.env.PORT;
 server.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
 });
